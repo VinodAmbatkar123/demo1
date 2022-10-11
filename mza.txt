@@ -1,0 +1,754 @@
+ https://github.com/MSOpenTech/redis/releases/download/win-3.2.100/Redis-x64-3.2.100.zip
+
+DEMO 3 – MongoDB 
+
+package com.mphasis.shopping; 
+
+ 
+
+import org.springframework.beans.factory.annotation.Autowired; 
+
+import org.springframework.beans.factory.annotation.Qualifier; 
+
+import org.springframework.boot.CommandLineRunner; 
+
+import org.springframework.boot.SpringApplication; 
+
+import org.springframework.boot.autoconfigure.SpringBootApplication; 
+
+ 
+
+import com.mphasis.shopping.domain.Product; 
+
+import com.mphasis.shopping.repository.ProductRepository; 
+
+ 
+
+@SpringBootApplication 
+
+public class Shoppingapph2Application implements CommandLineRunner{ 
+
+ 
+
+@Autowired 
+
+@Qualifier("productRepository") 
+
+private ProductRepository productRepository; 
+
+ 
+
+public static void main(String[] args) { 
+
+SpringApplication.run(Shoppingapph2Application.class, args); 
+
+System.out.println("$$$$$$$$$$$$This is Spring Boot Application$$$$$$$$$$$"); 
+
+} 
+
+ 
+
+@Override 
+
+public void run(String... args) throws Exception { 
+
+productRepository.save(new Product("Sony",88888)); 
+
+productRepository.save(new Product("Samsung",77777)); 
+
+productRepository.save(new Product("Dell",66666)); 
+
+productRepository.save(new Product("HP",55555)); 
+
+System.out.println(productRepository.findAll()); 
+
+ 
+
+} 
+
+ 
+
+} 
+
+package com.mphasis.shopping.controller; 
+
+ 
+
+import java.util.List; 
+
+import java.util.Map; 
+
+ 
+
+import org.springframework.beans.factory.annotation.Autowired; 
+
+import org.springframework.beans.factory.annotation.Qualifier; 
+
+import org.springframework.context.annotation.Scope; 
+
+import org.springframework.http.HttpStatus; 
+
+import org.springframework.http.MediaType; 
+
+import org.springframework.stereotype.Controller; 
+
+import org.springframework.web.bind.annotation.DeleteMapping; 
+
+import org.springframework.web.bind.annotation.GetMapping; 
+
+import org.springframework.web.bind.annotation.PatchMapping; 
+
+import org.springframework.web.bind.annotation.PathVariable; 
+
+import org.springframework.web.bind.annotation.PostMapping; 
+
+import org.springframework.web.bind.annotation.PutMapping; 
+
+import org.springframework.web.bind.annotation.RequestBody; 
+
+import org.springframework.web.bind.annotation.RequestMapping; 
+
+import org.springframework.web.bind.annotation.RequestParam; 
+
+import org.springframework.web.bind.annotation.ResponseBody; 
+
+import org.springframework.web.bind.annotation.ResponseStatus; 
+
+import org.springframework.web.bind.annotation.RestController; 
+
+ 
+
+import com.mphasis.shopping.domain.Product; 
+
+import com.mphasis.shopping.service.IProductService; 
+
+ 
+
+@RestController 
+
+@Scope("request") 
+
+//@Controller 
+
+@RequestMapping("/shop") 
+
+public class ProductController { 
+
+ 
+
+@Autowired 
+
+@Qualifier("productService") 
+
+private IProductService productService; 
+
+ 
+
+@RequestMapping("/") 
+
+public String dumyMethod() { 
+
+return "Welcome to Shopping world"; 
+
+} 
+
+//@RequestMapping("/product") 
+
+//@ResponseBody 
+
+@GetMapping(value="/product", produces = {MediaType.APPLICATION_JSON_VALUE}) 
+
+public List<Product> getAllProduct(){ 
+
+return productService.getAllProducts(); 
+
+} 
+
+ 
+
+@PostMapping(value="/insertproduct", produces = {MediaType.APPLICATION_JSON_VALUE}, 
+
+consumes = {MediaType.APPLICATION_JSON_VALUE}) 
+
+@ResponseStatus(code=HttpStatus.CREATED) 
+
+public Product insertProduct(@RequestBody Product product) { 
+
+return productService.save(product); 
+
+} 
+
+ 
+
+@PutMapping(value="/updateproduct", produces = {MediaType.APPLICATION_JSON_VALUE}) 
+
+@ResponseStatus(code=HttpStatus.OK) 
+
+public Product updateAnyProduct(@RequestBody Product product){ 
+
+return productService.update(product); 
+
+} 
+
+ 
+
+@DeleteMapping(value="/deleteproduct/{id}") 
+
+@ResponseStatus(code=HttpStatus.NO_CONTENT) 
+
+public  void deleteProductbyId(@PathVariable String id){ 
+
+ productService.delete(id); 
+
+} 
+
+ 
+
+@GetMapping(value="/productbyid/{id}", produces = {MediaType.APPLICATION_JSON_VALUE}) 
+
+public Product getProductById(@PathVariable String id){ 
+
+return productService.getProductById(id); 
+
+} 
+
+@GetMapping(value="/productbyname/{name}", produces = {MediaType.APPLICATION_JSON_VALUE}) 
+
+public List<Product> getProductByname(@PathVariable String name){ 
+
+return productService.getAllProductsByName(name); 
+
+} 
+
+@GetMapping(value="/productbyprice/{price}", produces = {MediaType.APPLICATION_JSON_VALUE}) 
+
+public List<Product> getProductByprice(@PathVariable int price){ 
+
+return productService.getAllProductsByPrice(price); 
+
+} 
+
+ 
+
+@PatchMapping(value="/patchproduct/{id}", consumes = {MediaType.APPLICATION_JSON_VALUE}) 
+
+public void patchProduct(@RequestBody Map<String,Object> updates, 
+
+@PathVariable String id){ 
+
+productService.patchProduct(updates, id); 
+
+} 
+
+ 
+
+} 
+
+package com.mphasis.shopping.domain; 
+
+ 
+
+  
+
+import org.springframework.data.annotation.Id; 
+
+import org.springframework.data.mongodb.core.mapping.Document; 
+
+  
+
+ 
+
+ 
+
+ @Document 
+
+public class Product { 
+
+ 
+
+ @Id 
+
+private String id; 
+
+  
+
+private String name; 
+
+  
+
+private int price; 
+
+ 
+
+public Product() {} 
+
+public Product(  String name, int price) { 
+
+super(); 
+
+this.name = name; 
+
+this.price = price; 
+
+} 
+
+ 
+
+public Product(String id, String name, int price) { 
+
+super(); 
+
+this.id = id; 
+
+this.name = name; 
+
+this.price = price; 
+
+} 
+
+public String getId() { 
+
+return id; 
+
+} 
+
+public void setId(String id) { 
+
+this.id = id; 
+
+} 
+
+public String getName() { 
+
+return name; 
+
+} 
+
+public void setName(String name) { 
+
+this.name = name; 
+
+} 
+
+public int getPrice() { 
+
+return price; 
+
+} 
+
+public void setPrice(int price) { 
+
+this.price = price; 
+
+} 
+
+@Override 
+
+public String toString() { 
+
+return "Product [id=" + id + ", name=" + name + ", price=" + price + "]"; 
+
+} 
+
+ 
+
+ 
+
+} 
+
+ 
+
+ 
+
+package com.mphasis.shopping.repository; 
+
+ 
+
+  
+
+ 
+
+import java.util.List; 
+
+ 
+
+import org.springframework.context.annotation.Scope; 
+
+  
+
+import org.springframework.data.mongodb.repository.MongoRepository; 
+
+import org.springframework.stereotype.Repository; 
+
+ 
+
+import com.mphasis.shopping.domain.Product; 
+
+ 
+
+@Repository("productRepository") 
+
+@Scope("singleton") 
+
+public interface ProductRepository  extends MongoRepository<Product, String>{ 
+
+  
+
+List<Product> findByNameLike(String name); 
+
+List<Product> findByPrice(int price); 
+
+} 
+
+package com.mphasis.shopping.service; 
+
+ 
+
+import java.util.List; 
+
+import java.util.Map; 
+
+ 
+
+import com.mphasis.shopping.domain.Product; 
+
+ 
+
+public interface IProductService { 
+
+ 
+
+Product save(Product product); 
+
+Product update(Product product); 
+
+void delete(String id);  
+
+List<Product> getAllProducts(); 
+
+Product getProductById(String id); 
+
+List<Product> getAllProductsByName(String name); 
+
+List<Product> getAllProductsByPrice(int price); 
+
+void patchProduct(Map<String,Object> updates, String id); 
+
+ 
+
+  
+
+} 
+
+package com.mphasis.shopping.service; 
+
+ 
+
+import java.util.List; 
+
+import java.util.Map; 
+
+ 
+
+import org.springframework.beans.factory.annotation.Autowired; 
+
+import org.springframework.beans.factory.annotation.Qualifier; 
+
+import org.springframework.context.annotation.Scope; 
+
+import org.springframework.stereotype.Service; 
+
+import org.springframework.transaction.annotation.Transactional; 
+
+ 
+
+import com.mphasis.shopping.domain.Product; 
+
+import com.mphasis.shopping.repository.ProductRepository; 
+
+ 
+
+@Service("productService") 
+
+@Scope("singleton") 
+
+public class ProductService implements IProductService { 
+
+ 
+
+@Autowired 
+
+@Qualifier("productRepository") 
+
+private ProductRepository productRepository; 
+
+ 
+
+@Override 
+
+public Product save(Product product) { 
+
+ return productRepository.save(product); 
+
+} 
+
+ 
+
+@Override 
+
+public Product update(Product product) { 
+
+ return productRepository.save(product); 
+
+} 
+
+ 
+
+@Override 
+
+public void delete(String id) { 
+
+productRepository.deleteById(id);		 
+
+} 
+
+  
+
+ 
+
+@Override 
+
+public List<Product> getAllProducts() { 
+
+return productRepository.findAll(); 
+
+} 
+
+  
+
+@Override 
+
+//@Transactional(readOnly = true) 
+
+public Product getProductById(String id) { 
+
+ 	return productRepository.findById(id).get(); 
+
+ 	} 
+
+ 
+
+@Override 
+
+public List<Product> getAllProductsByName(String name) { 
+
+return productRepository.findByNameLike(name); 
+
+} 
+
+ 
+
+@Override 
+
+public List<Product> getAllProductsByPrice(int price) { 
+
+return productRepository.findByPrice(price); 
+
+} 
+
+ 
+
+@Override 
+
+public void patchProduct(Map<String, Object> updates, String id) { 
+
+ Product dbProduct=productRepository.findById(id).get(); 
+
+ Integer price=(Integer)updates.get("price"); 
+
+ if(price != null) { 
+
+ dbProduct.setPrice(price); 
+
+ productRepository.save(dbProduct); 
+
+ } 
+
+ 
+
+} 
+
+ 
+
+} 
+
+ 
+
+ server.port=8080 
+
+  
+
+# spring.h2.console.path=/h2-console 
+
+# spring.h2.console.settings.trace=false 
+
+# spring.h2.console.settings.web-allow-others=false 
+
+# spring.h2.console.enabled=true 
+
+ 
+
+ 
+
+#spring.data.mongodb.host=localhost 
+
+#spring.data.mongodb.port=27017 
+
+# 
+
+#spring.data.mongodb.username= 
+
+#spring.data.mongodb.password= 
+
+ 
+
+<?xml version="1.0" encoding="UTF-8"?> 
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+
+xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"> 
+
+<modelVersion>4.0.0</modelVersion> 
+
+<parent> 
+
+<groupId>org.springframework.boot</groupId> 
+
+<artifactId>spring-boot-starter-parent</artifactId> 
+
+<version>2.7.4</version> 
+
+<relativePath/> <!-- lookup parent from repository --> 
+
+</parent> 
+
+<groupId>com.mphasis</groupId> 
+
+<artifactId>shoppingapph2</artifactId> 
+
+<version>0.0.1-SNAPSHOT</version> 
+
+<packaging>war</packaging> 
+
+<name>shoppingapph2</name> 
+
+<description>Demo project for Spring Boot</description> 
+
+<properties> 
+
+<java.version>1.8</java.version> 
+
+</properties> 
+
+<dependencies> 
+
+<dependency> 
+
+<groupId>org.springframework.boot</groupId> 
+
+<artifactId>spring-boot-starter-data-mongodb</artifactId> 
+
+</dependency> 
+
+<dependency> 
+
+<groupId>org.springframework.boot</groupId> 
+
+<artifactId>spring-boot-starter-data-jpa</artifactId> 
+
+</dependency> 
+
+<dependency> 
+
+<groupId>org.springframework.boot</groupId> 
+
+<artifactId>spring-boot-starter-web</artifactId> 
+
+</dependency> 
+
+ 
+
+<dependency> 
+
+<groupId>com.h2database</groupId> 
+
+<artifactId>h2</artifactId> 
+
+<scope>runtime</scope> 
+
+</dependency> 
+
+<dependency> 
+
+<groupId>mysql</groupId> 
+
+<artifactId>mysql-connector-java</artifactId> 
+
+<scope>runtime</scope> 
+
+</dependency> 
+
+<dependency> 
+
+<groupId>org.springframework.boot</groupId> 
+
+<artifactId>spring-boot-starter-tomcat</artifactId> 
+
+<scope>provided</scope> 
+
+</dependency> 
+
+<dependency> 
+
+<groupId>org.springframework.boot</groupId> 
+
+<artifactId>spring-boot-starter-test</artifactId> 
+
+<scope>test</scope> 
+
+</dependency> 
+
+<dependency> 
+
+<groupId>org.springframework.boot</groupId> 
+
+<artifactId>spring-boot-starter-data-mongodb</artifactId> 
+
+</dependency> 
+
+</dependencies> 
+
+ 
+
+<build> 
+
+<plugins> 
+
+<plugin> 
+
+<groupId>org.springframework.boot</groupId> 
+
+<artifactId>spring-boot-maven-plugin</artifactId> 
+
+</plugin> 
+
+</plugins> 
+
+</build> 
+
+ 
+
+</project> 
+
+ 
+
